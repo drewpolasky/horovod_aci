@@ -1,0 +1,66 @@
+BootStrap: localimage
+From: /home/adp29/aci_builds/horovod/horovod_ompi2.1.6.simg
+
+%runscript
+        exec python3 "$@"
+
+%environment
+	export NETCDF=/opt/netcdf/
+	export LD_LIBRARY_PATH=$NETCDF/lib:$LD_LIBRARY_PATH
+	export PATH=$NETCDF/bin:$PATH
+
+%post
+
+	apt-get install -y gfortran curl m4 python3-tk
+#install HDF5
+	mkdir -p /opt/hdf5
+	export HDF5_DIR=/opt/hdf5
+	cd $HDF5_DIR
+	wget https://support.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.10.5.tar.gz
+	tar -xvzf hdf5-1.10.5.tar.gz
+	cd hdf5-1.10.5
+	./configure --prefix=/opt/hdf5/ --enable-fortran --enable-cxx --disable-dap
+	make
+	make install
+
+#install netCDF
+	mkdir -p /opt/netcdf
+	export NETCDF=/opt/netcdf
+	cd $NETCDF
+	wget https://github.com/Unidata/netcdf-c/archive/v4.7.1.tar.gz
+	tar -xvzf v4.7.1.tar.gz
+	cd netcdf-c-4.7.1
+	export CPPFLAGS="-I$HDF5_DIR/include"
+	export LDFLAGS="-L$HDF5_DIR/lib"
+	./configure --prefix=$NETCDF --enable-netcdf4 --enable-shared --disable-dap
+	make 
+	make install
+	export PATH=$NETCDF/bin:$PATH
+
+
+#install python packages
+	pip3 install --upgrade pip==9.0.1
+	pip3 install matplotlib pandas sklearn seaborn keras==2.1.6 torchsummary netCDF4
+	pip3 install cython 
+	apt-get install -y proj-bin 
+	apt-get install -y libgeos-dev
+	pip3 install shapely pyshp geos
+	pip3 install git+https://github.com/matplotlib/basemap.git
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
